@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f6f8">
+<title>スーパー・チラシ一覧</title>
+<style>
+:root{color-scheme:light;--bg:#f4f6f8;--card:#fff;--text:#17202a;--muted:#637083;--line:#dce2e8;--link:#075ec8;--accent:#eaf2ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;font-size:17px;line-height:1.5}
+header{padding:22px 18px 14px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
+h1{font-size:25px;margin:0 0 5px;letter-spacing:.01em}
+.subtitle{color:var(--muted);font-size:14px}
+main{max-width:1050px;margin:0 auto;padding:14px 12px 34px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+input,select{font:inherit;min-height:46px;border:1px solid #c8d0da;border-radius:11px;padding:9px 12px;background:white;color:var(--text)}
+input{flex:1;min-width:180px}
+select{max-width:100%}
+.summary{font-size:14px;color:var(--muted);margin:8px 2px 12px}
+.list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,390px),1fr));gap:11px}
+.store{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px;box-shadow:0 1px 2px #17202a08}
+.store-top{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.name{font-size:19px;font-weight:750;line-height:1.35}
+.chain{display:block;color:var(--muted);font-size:14px;font-weight:500;margin-bottom:2px}
+.price{white-space:nowrap;border-radius:999px;padding:4px 10px;background:#f0f3f6;font-size:14px;font-weight:650}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.stat{background:#f6f8fa;border:1px solid #e7ebef;border-radius:9px;padding:5px 9px;font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 14px;border-radius:10px;background:var(--accent);color:var(--link);font-weight:700;text-decoration:none;border:1px solid #cfe0ff}
+a.btn.secondary{background:#fff;border-color:var(--line);color:#364152}
+a.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #7ab0ff;outline-offset:2px}
+.note{margin-top:17px;padding:13px 14px;background:#fff;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:13px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:14px}
+@media(min-width:700px){header{padding-left:max(24px,calc((100vw - 1050px)/2));padding-right:max(24px,calc((100vw - 1050px)/2))}main{padding:18px 20px 40px}.store{padding:17px}.name{font-size:20px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>スーパー・チラシ一覧</h1>
+  <div class="subtitle">清田区周辺・17店舗｜距離と往復ガソリン代も確認できます</div>
+</header>
+<main>
+  <div class="tools">
+    <input id="search" type="search" placeholder="店名で検索…" aria-label="店名で検索">
+    <select id="sort" aria-label="並び順">
+      <option value="original">元の順番</option>
+      <option value="distance">距離が近い順</option>
+      <option value="fuel">往復ガソリン代が安い順</option>
+      <option value="price">価格評価順（目安）</option>
+    </select>
+  </div>
+  <div class="summary" id="summary" aria-live="polite"></div>
+  <section class="list" id="list" aria-label="スーパー一覧"></section>
+  <div class="note">チラシリンクは、確認用の掲載サイト・検索ページを含みます。店舗や時期によってチラシが掲載されていない場合があります。距離・ガソリン代は入力された数値をそのまま掲載しています。</div>
+</main>
+<footer>スーパー・チラシ一覧</footer>
+<script>
+const stores = [
+ {chain:"ザ・ビッグ",name:"清田店",price:"安い",distance:800,fuel:25,url:"https://chirashi.kurashiru.com/stores/a28826e1-beb9-4ca5-8786-2114466b2f0a",kind:"掲載ページ"},
+ {chain:"東光ストア",name:"真栄店",price:"高い",distance:900,fuel:28,url:"https://chirashi.kurashiru.com/stores/fc8825f9-c0a4-4f70-af1a-9360d3288a4a",kind:"掲載ページ"},
+ {chain:"フードD生鮮市場",name:"平岡店",price:"やや安い",distance:950,fuel:30,url:"https://chirashi-guide.com/北海道/札幌市清田区/",kind:"地域チラシ一覧"},
+ {chain:"東部商事",name:"清田店",price:"高い",distance:1200,fuel:38,url:"https://www.google.com/search?q=東部商事+清田店+チラシ",kind:"チラシ検索"},
+ {chain:"ロピア",name:"清田店",price:"安い",distance:1300,fuel:41,url:"https://www.google.com/search?q=ロピア+ビバホーム清田店+チラシ",kind:"チラシ検索"},
+ {chain:"ダイイチ",name:"清田店",price:"普通",distance:1300,fuel:41,url:"https://chirashi-guide.com/北海道/札幌市清田区/95277/",kind:"掲載ページ"},
+ {chain:"ラッキー",name:"清田店",price:"夕方安い",distance:1300,fuel:41,url:"https://chirashi-guide.com/北海道/札幌市清田区/",kind:"地域チラシ一覧"},
+ {chain:"卸売スーパー",name:"清田店",price:"安い",distance:1500,fuel:48,url:"https://chirashi-guide.com/北海道/札幌市清田区/",kind:"地域チラシ一覧"},
+ {chain:"業務スーパー",name:"平岡店",price:"安い",distance:1700,fuel:54,url:"https://chirashi-guide.com/北海道/札幌市清田区/",kind:"地域チラシ一覧"},
+ {chain:"ビッグハウス",name:"里塚店",price:"夕方安い",distance:2200,fuel:70,url:"https://chirashi-guide.com/北海道/札幌市清田区/",kind:"地域チラシ一覧"},
+ {chain:"産直 生鮮市場",name:"平岡店",price:"安い",distance:2700,fuel:86,url:"https://chirashi.valueinfosearch.net/area/hokkaido_doo/sapporo_kiyota/",kind:"地域チラシ一覧"},
+ {chain:"スーパーアークス",name:"北野店",price:"たまに安い",distance:2800,fuel:89,url:"https://chirashi-guide.com/北海道/札幌市清田区/",kind:"地域チラシ一覧"},
+ {chain:"ホクレンショップ",name:"平岡公園通り店",price:"普通",distance:3400,fuel:108,url:"https://chirashi.valueinfosearch.net/area/hokkaido_doo/sapporo_kiyota/",kind:"地域チラシ一覧"},
+ {chain:"カウボーイ",name:"北野店",price:"？",distance:3600,fuel:115,url:"https://www.google.com/search?q=カウボーイ+北野店+チラシ",kind:"チラシ検索"},
+ {chain:"コープさっぽろ",name:"平岡店",price:"普通",distance:4000,fuel:128,url:"https://chirashi-guide.com/北海道/札幌市清田区/",kind:"地域チラシ一覧"},
+ {chain:"スーパーエース",name:"大曲店",price:"安い",distance:5000,fuel:160,url:"https://www.google.com/search?q=スーパーエース+大曲店+チラシ",kind:"チラシ検索"},
+ {chain:"スーパーセンタートライアル",name:"月寒店",price:"？",distance:5900,fuel:188,url:"https://www.google.com/search?q=スーパーセンタートライアル+月寒店+チラシ",kind:"チラシ検索"}
+];
+const list=document.getElementById('list'), search=document.getElementById('search'), sort=document.getElementById('sort'), summary=document.getElementById('summary');
+function render(){
+ const q=search.value.trim().toLocaleLowerCase('ja');
+ let data=stores.filter(s=>(s.chain+s.name+s.price).toLocaleLowerCase('ja').includes(q));
+ if(sort.value==='distance') data.sort((a,b)=>a.distance-b.distance);
+ if(sort.value==='fuel') data.sort((a,b)=>a.fuel-b.fuel);
+ if(sort.value==='price'){
+  const rank={"安い":1,"やや安い":2,"夕方安い":3,"たまに安い":4,"普通":5,"？":6,"高い":7};
+  data.sort((a,b)=>(rank[a.price]??9)-(rank[b.price]??9)||a.distance-b.distance);
+ }
+ summary.textContent=`${data.length}店舗を表示中`;
+ list.replaceChildren();
+ data.forEach(s=>{
+  const article=document.createElement('article'); article.className='store';
+  const top=document.createElement('div'); top.className='store-top';
+  const name=document.createElement('div'); name.className='name';
+  const chain=document.createElement('span'); chain.className='chain'; chain.textContent=s.chain;
+  name.append(chain,document.createTextNode(s.name));
+  const price=document.createElement('span'); price.className='price'; price.textContent=s.price;
+  top.append(name,price);
+  const stats=document.createElement('div'); stats.className='stats';
+  [[`距離 ${s.distance.toLocaleString('ja-JP')}m`],[`往復 ${s.fuel}円`]].forEach(([v])=>{const x=document.createElement('span');x.className='stat';x.textContent=v;stats.append(x)});
+  const actions=document.createElement('div'); actions.className='actions';
+  const link=document.createElement('a'); link.className='btn'; link.href=s.url; link.target='_blank'; link.rel='noopener noreferrer'; link.textContent='チラシを開く ↗';
+  const kind=document.createElement('span'); kind.className='stat'; kind.textContent=s.kind;
+  actions.append(link,kind);
+  article.append(top,stats,actions); list.append(article);
+ });
+}
+search.addEventListener('input',render); sort.addEventListener('change',render); render();
+</script>
+</body>
+</html>
